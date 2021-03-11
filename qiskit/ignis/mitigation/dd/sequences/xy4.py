@@ -20,11 +20,47 @@ from qiskit.ignis.mitigation.dd.components import (
     DynamicalDecouplingGateComponent,
     DynamicalDecouplingDelayComponent,
     DynamicalDecouplingPulseComponent,
+    BaseDynamicalDecouplingComponent,
 )
 from qiskit import pulse
 
 
-class XY4DynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
+class BaseXY4DynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
+    def __init__(
+        self,
+        X: BaseDynamicalDecouplingComponent,
+        Y: BaseDynamicalDecouplingComponent,
+        symmetric: bool = True,
+    ):
+        """Implementation of the XY-4 dynamical decoupling sequence
+
+        The XY-4 dynamical decoupling sequence is either
+            tau/2 - X - tau - Y - tau - X - tau - Y - tau/2
+        for the symmetric version or
+            tau - X - tau - Y - tau - X - tau - Y
+        for the non-symmetric one.
+
+        Args:
+            X: first component to use as a X gate
+            Y: second component to use as a Y gate
+            symmetric: if True, use the symmetric version of the XY-4 dynamical
+                decoupling scheme. Else, use the non-symmetric version
+        """
+        delay = DynamicalDecouplingDelayComponent()
+
+        if symmetric:
+            super(BaseXY4DynamicalDecouplingSequence, self).__init__(
+                [delay, X, delay, Y, delay, X, delay, Y, delay],
+                [1 / 2, None, 1, None, 1, None, 1, None, 1 / 2],
+            )
+        else:
+            super(BaseXY4DynamicalDecouplingSequence, self).__init__(
+                [delay, X, delay, Y, delay, X, delay, Y],
+                [1, None, 1, None, 1, None, 1, None],
+            )
+
+
+class XY4DynamicalDecouplingSequence(BaseXY4DynamicalDecouplingSequence):
     def __init__(
         self,
         backend: IBMQBackend,
@@ -47,21 +83,11 @@ class XY4DynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
         properties = backend.properties()
         X = DynamicalDecouplingGateComponent("x", configuration, properties)
         Y = DynamicalDecouplingGateComponent("y", configuration, properties)
-        delay = DynamicalDecouplingDelayComponent()
 
-        if symmetric:
-            super(XY4DynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y, delay],
-                [1 / 2, None, 1, None, 1, None, 1, None, 1 / 2],
-            )
-        else:
-            super(XY4DynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y],
-                [1, None, 1, None, 1, None, 1, None],
-            )
+        super(XY4DynamicalDecouplingSequence, self).__init__(X, Y, symmetric)
 
 
-class XY4PulseDynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
+class XY4PulseDynamicalDecouplingSequence(BaseXY4DynamicalDecouplingSequence):
     def __init__(
         self,
         backend: IBMQBackend,
@@ -106,15 +132,5 @@ class XY4PulseDynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
 
         X = DynamicalDecouplingGateComponent("x", configuration, properties)
         Y = DynamicalDecouplingPulseComponent("y", calibrations)
-        delay = DynamicalDecouplingDelayComponent()
 
-        if symmetric:
-            super(XY4PulseDynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y, delay],
-                [1 / 2, None, 1, None, 1, None, 1, None, 1 / 2],
-            )
-        else:
-            super(XY4PulseDynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y],
-                [1, None, 1, None, 1, None, 1, None],
-            )
+        super(XY4PulseDynamicalDecouplingSequence, self).__init__(X, Y, symmetric)
