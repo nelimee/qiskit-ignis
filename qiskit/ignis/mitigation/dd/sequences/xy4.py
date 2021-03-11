@@ -12,6 +12,7 @@
 
 from copy import deepcopy
 from math import pi
+import typing as ty
 
 from qiskit.providers.ibmq import IBMQBackend
 
@@ -28,9 +29,15 @@ from qiskit import pulse
 class BaseXY4DynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
     def __init__(
         self,
-        X: BaseDynamicalDecouplingComponent,
-        Y: BaseDynamicalDecouplingComponent,
+        X: ty.Union[
+            BaseDynamicalDecouplingComponent, ty.List[BaseDynamicalDecouplingComponent]
+        ],
+        Y: ty.Union[
+            BaseDynamicalDecouplingComponent, ty.List[BaseDynamicalDecouplingComponent]
+        ],
         symmetric: bool = True,
+        x_scales: ty.Optional[ty.List[float]] = None,
+        y_scales: ty.Optional[ty.List[float]] = None,
     ):
         """Implementation of the XY-4 dynamical decoupling sequence
 
@@ -41,22 +48,37 @@ class BaseXY4DynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
         for the non-symmetric one.
 
         Args:
-            X: first component to use as a X gate
-            Y: second component to use as a Y gate
+            X: first component (or list of components) to use as a X gate
+            Y: second component (or list of components) to use as a Y gate
+            x_scales: list of scales for the delays in the given X. Required to have
+                the same length as X if X is a list of BaseDynamicalDecouplingComponent.
+            y_scales: list of scales for the delays in the given Y. Required to have
+                the same length as Y if Y is a list of BaseDynamicalDecouplingComponent.
             symmetric: if True, use the symmetric version of the XY-4 dynamical
                 decoupling scheme. Else, use the non-symmetric version
         """
+        if isinstance(X, BaseDynamicalDecouplingComponent):
+            X = [X]
+            x_scales = [x_scales]
+        else:
+            assert len(X) == len(x_scales)
+        if isinstance(Y, BaseDynamicalDecouplingComponent):
+            Y = [Y]
+            y_scales = [y_scales]
+        else:
+            assert len(Y) == len(y_scales)
+
         delay = DynamicalDecouplingDelayComponent()
 
         if symmetric:
             super(BaseXY4DynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y, delay],
-                [1 / 2, None, 1, None, 1, None, 1, None, 1 / 2],
+                [delay, *X, delay, *Y, delay, *X, delay, *Y, delay],
+                [1 / 2, *x_scales, 1, *y_scales, 1, *x_scales, 1, *y_scales, 1 / 2],
             )
         else:
             super(BaseXY4DynamicalDecouplingSequence, self).__init__(
-                [delay, X, delay, Y, delay, X, delay, Y],
-                [1, None, 1, None, 1, None, 1, None],
+                [delay, *X, delay, *Y, delay, *X, delay, *Y],
+                [1, *x_scales, 1, *y_scales, 1, *x_scales, 1, *y_scales],
             )
 
 
