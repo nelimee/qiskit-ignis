@@ -105,12 +105,12 @@ class XY4KDDDynamicalDecouplingSequence(BaseXY4DynamicalDecouplingSequence):
         rz_m3 = DynamicalDecouplingPulseComponent("rz_-3", calibrations["rz_-3"])
         delay = DynamicalDecouplingDelayComponent()
 
-        base_x = [x_pi_6, delay, x, delay, x_pi_2, delay, x, delay, x_pi_6, rz_m3]
-        base_x_scales = [None, 1, None, 1, None, 1, None, 1, None, None]
+        robust_x = [x_pi_6, delay, x, delay, x_pi_2, delay, x, delay, x_pi_6, rz_m3]
+        robust_x_scales = [None, 1, None, 1, None, 1, None, 1, None, None]
         super(XY4KDDDynamicalDecouplingSequence, self).__init__(
-            X=[delay, *base_x, delay],
-            Y=[delay, rz_2, *base_x, rz_m2, delay],
+            X=robust_x,
+            Y=[rz_2, *robust_x, rz_m2],
             symmetric=symmetric,
-            x_scales=[1 / 2, *base_x_scales, 1 / 2],
-            y_scales=[1 / 2, None, *base_x_scales, None, 1 / 2],
+            x_scales=robust_x_scales,
+            y_scales=[None, *robust_x_scales, None],
         )
