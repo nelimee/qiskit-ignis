@@ -12,3 +12,4 @@
 
 from .xy4 import XY4DynamicalDecouplingSequence, XY4PulseDynamicalDecouplingSequence
 from .kdd import XY4KDDDynamicalDecouplingSequence
+from .hahn import HahnSpinEchoDynamicalDecouplingSequence
