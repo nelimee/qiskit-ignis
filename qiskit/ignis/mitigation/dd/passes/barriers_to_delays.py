@@ -97,6 +97,7 @@ class BarriersToDelaysPass(TransformationPass):
                             output_dag_circuit,
                             Delay(time_dt, unit="dt"),
                             qargs=[output_dag_circuit.qubits[qubit_index]],
+                            cargs=[],
                         )
                     # In any case, all the qubits involved will have the same end time.
                     times_dt[qubit_index] = max_start_time_dt + node_execution_time_dt
