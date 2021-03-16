@@ -14,3 +14,5 @@ from .barriers_to_delays import BarriersToDelaysPass
 from .merge_delays import MergeDelaysPass
 from .delays_to_dynamical_decoupling import DelayToDynamicalDecouplingSequencePass
 from .fundamental_state_analysis import FlagFundamentalStateOperations
+
+from .pass_manager import get_dd_pass_manager
