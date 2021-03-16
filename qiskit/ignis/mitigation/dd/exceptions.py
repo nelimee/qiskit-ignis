@@ -32,3 +32,8 @@ class MissingParameter(QiskitError):
         super(MissingParameter, self).__init__(
             f"Missing parameter '{parameter_name}' in '{function_name}'."
         )
+
+
+class InvalidParameters(QiskitError):
+    def __init__(self, message: str):
+        super(InvalidParameters, self).__init__(message)
