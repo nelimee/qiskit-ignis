@@ -10,48 +10,84 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from copy import deepcopy
-from math import pi
+import typing as ty
 
 from qiskit.providers.ibmq import IBMQBackend
 
 from qiskit.ignis.mitigation.dd.components import (
     DynamicalDecouplingDelayComponent,
-    DynamicalDecouplingPulseComponent,
+    DynamicalDecouplingGateComponent,
+    BaseDynamicalDecouplingComponent,
 )
 from qiskit.ignis.mitigation.dd.sequence import BaseDynamicalDecouplingSequence
-from qiskit import pulse
 
 
-class HahnSpinEchoDynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
+class BaseHahnSpinEchoDynamicalDecouplingSequence(BaseDynamicalDecouplingSequence):
     def __init__(
         self,
-        backend: IBMQBackend,
+        component: BaseDynamicalDecouplingComponent,
+        pre_rotation: ty.Optional[BaseDynamicalDecouplingComponent] = None,
+        post_rotation: ty.Optional[BaseDynamicalDecouplingComponent] = None,
     ):
+        """Base class for the Spin Echo dynamical decoupling sequence
+
+        This class implements the Spin Echo dynamical decoupling sequence with the
+        given component.
+
+        Notes:
+            The state this sequence is applied on should be in the XY plane.
+
+        Args:
+            component: the dynamical-decoupling component that will be used as pi-pulse.
+            pre_rotation: pi/2 rotation at the beginning of the sequence. If not
+                given, no pre-rotation is performed.
+            post_rotation: pi/2 rotation at the end of the sequence. If not given,
+                no post-rotation is performed.
+        """
+        delay = DynamicalDecouplingDelayComponent()
+
+        sequence = [delay, component, delay]
+        relative_scales = [1, None, 1]
+        if pre_rotation is not None:
+            sequence = [pre_rotation, *sequence]
+            relative_scales = [None, *relative_scales]
+        if post_rotation is not None:
+            sequence = [*sequence, post_rotation]
+            relative_scales = [*relative_scales, None]
+
+        super(BaseHahnSpinEchoDynamicalDecouplingSequence, self).__init__(
+            sequence=sequence, relative_scales=relative_scales
+        )
+
+
+class HahnSpinEchoDynamicalDecouplingSequence(
+    BaseHahnSpinEchoDynamicalDecouplingSequence
+):
+    def __init__(self, backend: IBMQBackend, add_pre_post_rotations: bool = False):
         """Implementation of the Hahn spin echo dynamical decoupling sequence
 
         Args:
             backend: backend we want to use
+            add_pre_post_rotations: True if a pi X rotation should be added at the
+                beginning and at the end of the dynamical decoupling sequence,
+                else False.
+
+        References:
+            https://doi.org/10.1103/PhysRev.80.580
         """
         configuration = backend.configuration()
-        defaults = backend.defaults()
-        ism = defaults.instruction_schedule_map
+        properties = backend.properties()
 
-        y_calibrations = dict()
-        for qubit_index in range(configuration.num_qubits):
-            default_x_calibration = ism.get("x", [qubit_index])
-            channel = pulse.DriveChannel(qubit_index)
-
-            with pulse.build(backend, name="y_gate") as y_gate:
-                pulse.shift_phase(pi / 2, channel)
-                pulse.call(default_x_calibration)
-                pulse.shift_phase(-pi / 2, channel)
-
-            y_calibrations[(qubit_index,)] = deepcopy(y_gate)
-
-        y = DynamicalDecouplingPulseComponent("y", y_calibrations)
-        delay = DynamicalDecouplingDelayComponent()
+        x = DynamicalDecouplingGateComponent("x", configuration, properties)
+        pre_rotation, post_rotation = None, None
+        if add_pre_post_rotations:
+            pre_rotation = DynamicalDecouplingGateComponent(
+                "sx", configuration, properties
+            )
+            post_rotation = DynamicalDecouplingGateComponent(
+                "sxdg", configuration, properties
+            )
 
         super(HahnSpinEchoDynamicalDecouplingSequence, self).__init__(
-            sequence=[delay, y, delay], relative_scales=[1, None, 1]
+            x, pre_rotation=pre_rotation, post_rotation=post_rotation
         )
