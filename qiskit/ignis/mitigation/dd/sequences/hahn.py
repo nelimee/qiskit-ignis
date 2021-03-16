@@ -68,7 +68,7 @@ class HahnSpinEchoDynamicalDecouplingSequence(
 
         Args:
             backend: backend we want to use
-            add_pre_post_rotations: True if a pi X rotation should be added at the
+            add_pre_post_rotations: True if a pi/2 X rotation should be added at the
                 beginning and at the end of the dynamical decoupling sequence,
                 else False.
 
