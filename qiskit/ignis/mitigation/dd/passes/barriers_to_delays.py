@@ -81,11 +81,18 @@ class BarriersToDelaysPass(TransformationPass):
             else:
                 # Else, we update the times and insert the operation
                 involved_qubits_indices = [q.index for q in node.qargs]
-                node_execution_time_dt = to_dt_assert_exact(
-                    self._properties.gate_length(node.name, involved_qubits_indices),
-                    unit="s",
-                    dt=self._dt,
-                )
+                if node.name == "delay":
+                    node_execution_time_dt = to_dt_assert_exact(
+                        node.op.duration, unit=node.op.unit, dt=self._dt
+                    )
+                else:
+                    node_execution_time_dt = to_dt_assert_exact(
+                        self._properties.gate_length(
+                            node.name, involved_qubits_indices
+                        ),
+                        unit="s",
+                        dt=self._dt,
+                    )
                 max_start_time_dt: int = max(
                     times_dt[i] for i in involved_qubits_indices
                 )
