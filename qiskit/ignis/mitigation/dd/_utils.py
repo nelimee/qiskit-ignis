@@ -81,7 +81,7 @@ def to_dt_rounded(
 
     Returns: the converted time in dt
     """
-    return int(to_dt_float(time, unit, dt))
+    return round(to_dt_float(time, unit, dt))
 
 
 def to_dt_assert_exact(
@@ -106,11 +106,12 @@ def to_dt_assert_exact(
             absolute error.
     """
     dt_float: float = to_dt_float(time, unit, dt)
-    if abs(dt_float - int(dt_float)) > absolute_error:
+    if abs(dt_float - round(dt_float)) > absolute_error:
         raise RuntimeError(
-            f"Given time {time:.3e} {unit} is not a multiple of dt {dt:.3e} ns."
+            f"Given time {time:.3e} {unit} is not a multiple of dt {dt:.3e} ns. "
+            f"Division time/dt = {dt_float}."
         )
-    return int(dt_float)
+    return round(dt_float)
 
 
 def translate_circuit_to_basis(
