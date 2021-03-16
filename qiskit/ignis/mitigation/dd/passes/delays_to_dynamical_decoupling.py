@@ -15,6 +15,9 @@ from qiskit.converters import circuit_to_dag
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.ignis.mitigation.dd._utils import to_dt_rounded
 from qiskit.ignis.mitigation.dd.sequence import BaseDynamicalDecouplingSequence
+from qiskit.ignis.mitigation.dd.passes.fundamental_state_analysis import (
+    FlagFundamentalStateOperations,
+)
 from qiskit.providers.models import BackendProperties
 from qiskit.transpiler.basepasses import TransformationPass
 
@@ -31,6 +34,7 @@ class DelayToDynamicalDecouplingSequencePass(TransformationPass):
         self._properties = backend_properties
         self._sequence = dd_sequence
         self._dt = dt
+        self.requires += [FlagFundamentalStateOperations()]
 
     def run(self, dag: DAGCircuit) -> DAGCircuit:
         """Apply the pass to the given DAGCircuit instance."""
@@ -38,7 +42,12 @@ class DelayToDynamicalDecouplingSequencePass(TransformationPass):
         nodes = list(dag.topological_op_nodes())
 
         for node in nodes:
-            if node.name == "delay":
+            if (
+                node.name == "delay"
+                and not self.property_set[
+                    FlagFundamentalStateOperations.PROPERTY_SET_KEY
+                ][id(node)]
+            ):
                 duration_dt: int = to_dt_rounded(
                     node.op.duration, node.op.unit, self._dt
                 )
