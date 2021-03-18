@@ -37,3 +37,12 @@ class MissingParameter(QiskitError):
 class InvalidParameters(QiskitError):
     def __init__(self, message: str):
         super(InvalidParameters, self).__init__(message)
+
+
+class DDSequenceTooLong(QiskitError):
+    def __init__(self, fixed_dd_time_dt: int, available_time_ns: int):
+        super(DDSequenceTooLong, self).__init__(
+            f"Cannot apply a dynamical-decoupling sequence that has a fixed duration "
+            f"of {fixed_dd_time_dt} dt on the given available time "
+            f"{available_time_ns} dt."
+        )

@@ -15,6 +15,7 @@ import typing as ty
 
 from qiskit import QuantumCircuit
 from qiskit.ignis.mitigation.dd.components import BaseDynamicalDecouplingComponent
+from qiskit.ignis.mitigation.dd.exceptions import DDSequenceTooLong
 
 
 class BaseDynamicalDecouplingSequence:
@@ -106,6 +107,10 @@ class BaseDynamicalDecouplingSequence:
             for component in self._sequence
             if not component.is_scalable
         )
+
+        if fixed_duration_dt > total_duration_dt:
+            raise DDSequenceTooLong(fixed_duration_dt, total_duration_dt)
+
         duration_to_scale_dt: float = total_duration_dt - fixed_duration_dt
 
         circuit = QuantumCircuit(1)
