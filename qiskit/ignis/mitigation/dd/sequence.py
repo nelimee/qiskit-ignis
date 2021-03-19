@@ -101,6 +101,9 @@ class BaseDynamicalDecouplingSequence:
             Returns a QuantumCircuit instance of the specified duration that implement
             the dynamical decoupling scheme represented by the instance.
         """
+        if not isinstance(qargs, tuple):
+            qargs = tuple(qargs)
+
         total_scale: float = sum(sc for sc in self._relative_scales if sc is not None)
         fixed_duration_dt: int = sum(
             component.duration(qargs)
