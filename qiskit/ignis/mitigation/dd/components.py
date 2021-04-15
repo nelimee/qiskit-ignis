@@ -208,7 +208,7 @@ class DynamicalDecouplingPulseComponent(BaseDynamicalDecouplingComponent):
         dd_sequence.append(self._gates[qargs], qargs=local_dd_sequence_qargs)
         dd_sequence.add_calibration(
             self._gates[qargs],
-            qubits=qargs,
+            qubits=local_dd_sequence_qargs,
             schedule=self._schedules[qargs],
         )
 

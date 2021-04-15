@@ -119,8 +119,8 @@ class BaseDynamicalDecouplingSequence:
         circuit = QuantumCircuit(1)
         for component, relative_scale in zip(self._sequence, self._relative_scales):
             if component.is_scalable:
-                component_duration_dt = round(
-                    duration_to_scale_dt * relative_scale / total_scale
+                component_duration_dt = int(
+                    round(duration_to_scale_dt * relative_scale / total_scale)
                 )
                 component.scale_to(component_duration_dt).apply(circuit, qargs, [0])
             else:

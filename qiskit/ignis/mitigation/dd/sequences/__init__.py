@@ -18,3 +18,7 @@ from .cpmg import (
     CPMGGateDynamicalDecouplingSequence,
     CPMGPulseDynamicalDecouplingSequence,
 )
+from .udd import (
+    UhrigGateDynamicalDecouplingSequence,
+    UhrigPulseDynamicalDecouplingSequence,
+)

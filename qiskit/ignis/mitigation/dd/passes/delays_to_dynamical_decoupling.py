@@ -69,4 +69,5 @@ class DelayToDynamicalDecouplingSequencePass(TransformationPass):
                     )
             else:
                 output_dag_circuit.apply_operation_back(node.op, node.qargs, node.cargs)
+        print(f"Returning with {len(output_dag_circuit.calibrations)} calibrations")
         return output_dag_circuit
